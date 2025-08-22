@@ -1,60 +1,297 @@
-# Usage
+# Usage Guide
 
-## Basic Denoising
+## Overview
 
-Denoise with smoothing:
-```bash
-rpsd denoise --input data.csv --output out.csv --time-col timestamp --price-col price \
-  --window 250 --overlap 0.5 --lambda-var 1.2 --max-iters 200 --n-jobs -1 --progress
-```
+The Robust Financial Time Series Denoiser provides a **fidelity-first approach** to financial signal processing, prioritizing signal preservation over aggressive noise removal.
 
-## Testing the Identity Contract
+## Quick Start
 
-Test that the denoiser preserves input exactly when smoothing is disabled:
-```bash
-rpsd denoise --input data.csv --output identity_test.csv --window 150 --overlap 0.5 \
-  --lambda-var 0.0 --max-iters 1 --verbose
-```
-
-This should return output identical to input, verifying the mathematical foundation.
-
-## Parameter Guide
-
-- **`--window`**: Window size for processing (default: 150, recommended: 250 for real data)
-- **`--overlap`**: Overlap fraction between windows (default: 0.5)
-- **`--lambda-var`**: TV regularization strength (0.0 = identity, 1.2 = medium smoothing, 3.0+ = heavy smoothing)
-- **`--max-iters`**: Maximum iterations for TV proximal (default: 80, recommended: 200 for real data)
-- **`--standardize`**: Standardize prices before processing (default: true)
-- **`--n-jobs`**: Number of parallel jobs (-1 for all cores)
-
-## Evaluation
-
-Evaluate denoising results:
-```bash
-rpsd evaluate --original data.csv --denoised out.csv --time-col timestamp --price-col price
-```
-
-## Complete Example Workflow
+### 1. Installation
 
 ```bash
-# 1. Test identity contract (should return exact input)
-rpsd denoise --input examples/goog_1m.csv --output examples/goog_identity.csv \
-  --window 150 --overlap 0.5 --lambda-var 0.0 --max-iters 1 --verbose
+# Create virtual environment
+python3.11 -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
-# 2. Denoise with smoothing
-rpsd denoise --input examples/goog_1m.csv --output examples/goog_denoised.csv \
-  --window 250 --overlap 0.5 --lambda-var 1.2 --max-iters 200 --verbose
+# Install package
+pip install -e .
 
-# 3. Evaluate results
-rpsd evaluate --original examples/goog_1m.csv --denoised examples/goog_denoised.csv
-
-# 4. Generate plots
-python examples/plot_real_data.py
+# Install development dependencies (optional)
+pip install -e .[dev]
 ```
 
-## Expected Results
+### 2. Download Sample Data
 
-- **Identity Test**: Output should equal input exactly when `lambda-var=0.0`
-- **Smoothing**: Progressive noise reduction with increasing `lambda-var`
-- **Baseline Preservation**: First price preserved exactly across all operations
-- **Length Stability**: No array length mismatches or data loss
+```bash
+python examples/download_data.py
+```
+
+This downloads Google (GOOG) 1-minute stock data for the last 5 trading days.
+
+### 3. Run the Robust Denoiser
+
+```bash
+python examples/plot_real_data_robust.py
+```
+
+This generates:
+- `examples/plots/goog_before_after_robust.png` - Main comparison plot
+- Performance metrics in the terminal
+
+### 4. Compare Denoiser Performance
+
+```bash
+python examples/compare_denoisers.py
+```
+
+This generates:
+- `examples/plots/denoiser_comparison_comprehensive.png` - Performance comparison
+- Detailed metrics for both old and new denoisers
+
+## Core Components
+
+### Robust Denoiser (`denoise_robust.py`)
+
+The main denoising engine with comprehensive guardrails:
+
+```python
+from rpsd.denoise_robust import DenoiseConfig, wavelet_denoise, evaluate_guardrails
+
+# Configure denoiser
+config = DenoiseConfig(
+    wavelet='db4',
+    max_level_reduction=2,
+    alpha=1.0,
+    vol_adaptive=True,
+    fir_apply=True,
+    fir_cutoff_hz=1/600.0
+)
+
+# Apply denoising
+denoised = wavelet_denoise(prices, config)
+
+# Evaluate results
+report = evaluate_guardrails(prices, denoised, config)
+print(f"Compliance Score: {report.compliance_score:.1f}/100")
+```
+
+### Legacy Denoiser (`denoise.py`)
+
+The original implementation for comparison:
+
+```python
+from rpsd.denoise import denoise_series
+
+# Basic usage
+denoised = denoise_series(
+    values=prices,
+    window=250,
+    overlap=0.5,
+    lam_var=1.2,
+    max_iters=200
+)
+```
+
+### Command Line Interface
+
+```bash
+# Basic denoising
+rpsd denoise --input data.csv --output denoised.csv
+
+# With custom parameters
+rpsd denoise \
+  --input data.csv \
+  --output denoised.csv \
+  --window 250 \
+  --overlap 0.5 \
+  --lambda-var 1.2 \
+  --max-iters 200 \
+  --verbose
+
+# Evaluate results
+rpsd evaluate --original data.csv --denoised denoised.csv
+```
+
+## Configuration
+
+### DenoiseConfig Parameters
+
+| Parameter | Description | Default | Range |
+|-----------|-------------|---------|-------|
+| `wavelet` | Wavelet family | 'db4' | 'haar', 'db1-20', 'sym2-20' |
+| `max_level_reduction` | Level reduction from max | 2 | 0-5 |
+| `alpha` | Threshold scaling factor | 1.0 | 0.1-3.0 |
+| `vol_adaptive` | Volatility-adaptive thresholding | True | True/False |
+| `fir_apply` | Apply FIR low-pass filter | True | True/False |
+| `fir_cutoff_hz` | FIR cutoff frequency (Hz) | 1/600.0 | 1/3600.0-1/60.0 |
+
+### Guardrail Thresholds
+
+| Metric | Threshold | Description |
+|--------|-----------|-------------|
+| **Correlation** | ≥85% | Signal preservation |
+| **RMSE** | ≤0.5 | Tracking accuracy |
+| **Trend Agreement** | ≥90% | Slope preservation |
+| **Low-freq Power** | ≥95% | Structure retention |
+| **Residual Whiteness** | ≥0.05 | Statistical validity (p-value) |
+
+## Data Format
+
+### Required CSV Structure
+
+```csv
+timestamp,price
+2025-08-18T13:30:00Z,205.08
+2025-08-18T13:31:00Z,204.95
+2025-08-18T13:32:00Z,205.16
+...
+```
+
+**Columns:**
+- `timestamp`: ISO8601 string or epoch timestamp
+- `price`: Non-negative float (USD, EUR, etc.)
+
+**Optional columns are ignored.**
+
+### Data Quality Requirements
+
+- **Minimum length**: 100 observations
+- **Price range**: Positive values only
+- **Time regularity**: Consistent intervals preferred
+- **Missing data**: Handled automatically with interpolation
+
+## Performance Metrics
+
+### Primary Metrics
+
+1. **Variance Reduction**: Noise removal effectiveness
+2. **Signal Correlation**: Preservation of original structure
+3. **RMSE**: Tracking accuracy
+4. **Compliance Score**: Overall quality assessment (0-100)
+
+### Secondary Metrics
+
+1. **Trend Preservation**: Slope agreement percentage
+2. **Low-frequency Power**: Structure retention
+3. **Residual Whiteness**: Statistical validation
+4. **Volatility Adaptation**: Market regime awareness
+
+## Advanced Usage
+
+### Custom Wavelet Selection
+
+```python
+import pywt
+
+# List available wavelets
+print(pywt.wavelist())
+
+# Custom configuration
+config = DenoiseConfig(
+    wavelet='sym8',           # Symmetric wavelet
+    max_level_reduction=1,    # Use more levels
+    alpha=1.5,               # Higher threshold scaling
+    vol_adaptive=False       # Disable volatility adaptation
+)
+```
+
+### Parameter Optimization
+
+```python
+from rpsd.denoise_robust import search_params
+
+# Find optimal parameters
+best_config = search_params(
+    prices,
+    param_grid={
+        'wavelet': ['db4', 'db8', 'sym8'],
+        'max_level_reduction': [1, 2, 3],
+        'alpha': [0.8, 1.0, 1.2]
+    }
+)
+```
+
+### Rolling Validation
+
+```python
+from rpsd.denoise_robust import rolling_validate
+
+# Validate across time windows
+results = rolling_validate(
+    prices,
+    window_size=1000,
+    step_size=500,
+    config=config
+)
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Low correlation scores**: Reduce denoising intensity
+2. **High RMSE**: Check data quality and preprocessing
+3. **Compliance failures**: Adjust guardrail thresholds
+4. **Memory errors**: Reduce window size or use chunking
+
+### Performance Tuning
+
+1. **Start conservative**: Use default parameters
+2. **Monitor guardrails**: Watch compliance scores
+3. **Adjust gradually**: Small parameter changes
+4. **Validate results**: Always check final output
+
+## Examples
+
+### Basic Denoising
+
+```python
+import pandas as pd
+from rpsd.denoise_robust import DenoiseConfig, wavelet_denoise
+
+# Load data
+df = pd.read_csv('data.csv')
+prices = df['price'].values
+
+# Configure and run
+config = DenoiseConfig()
+denoised = wavelet_denoise(prices, config)
+
+# Save results
+df['denoised'] = denoised
+df.to_csv('denoised_data.csv', index=False)
+```
+
+### Batch Processing
+
+```python
+import glob
+from pathlib import Path
+
+# Process multiple files
+for file_path in glob.glob('data/*.csv'):
+    df = pd.read_csv(file_path)
+    prices = df['price'].values
+    
+    denoised = wavelet_denoise(prices, config)
+    
+    output_path = Path(file_path).parent / f"denoised_{Path(file_path).name}"
+    df['denoised'] = denoised
+    df.to_csv(output_path, index=False)
+```
+
+## Best Practices
+
+1. **Always validate**: Check guardrail compliance
+2. **Start simple**: Use default configurations first
+3. **Monitor performance**: Track metrics over time
+4. **Document changes**: Keep parameter logs
+5. **Test thoroughly**: Validate on multiple datasets
+
+## Support
+
+For issues and questions:
+- Check the troubleshooting section above
+- Review example scripts in `examples/`
+- Open an issue on GitHub
+- Check `docs/BACKGROUND.md` for theoretical context

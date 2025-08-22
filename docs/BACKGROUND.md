@@ -1,68 +1,161 @@
-# Background (Rough-Path Inspired)
+# Background and Context
+
+## Overview
+
+This document provides context on the current implementation and its relationship to advanced mathematical finance. We aim to be **transparent about what we have built** and **clear about what remains to be done**.
 
 ## Current Implementation
 
-This implementation takes inspiration from rough path ideas: pathwise summaries (signature-like moments) and stability, coupled with **robust total variation regularization** on increments to suppress oscillatory components while preserving mathematical precision.
+### What We Have Built
 
-## Mathematical Foundation
+**Robust Financial Time Series Denoiser**: A working implementation that applies wavelet-based denoising with comprehensive guardrails to financial time series data.
 
-### Identity Contract
-The denoiser implements an **identity contract**:
-- When smoothing is disabled (`λ_var = 0.0`), output equals input exactly
-- This ensures mathematical correctness and provides a foundation for more advanced methods
+**Key Components**:
+- **Wavelet Decomposition**: Multi-scale noise analysis using PyWavelets
+- **Adaptive Thresholding**: BayesShrink and other thresholding methods
+- **Guardrail System**: Metrics to prevent oversmoothing and signal destruction
+- **Parameter Optimization**: Automatic tuning for optimal performance
 
-### Robust Implementation
-- **Explicit indexing**: `inc[0] = 0.0; inc[1:] = x[1:] - x[:-1]` for length preservation
-- **Length validation**: `assert_shapes()` function catches drift immediately
-- **Baseline preservation**: First price preserved across all operations
-- **Domain consistency**: Works reliably in both raw and standardized domains
+**What It Does Well**:
+- Reduces microstructure noise while preserving signal structure
+- Provides verifiable quality metrics through guardrails
+- Works reliably on real financial data
+- Maintains signal fidelity over aggressive noise removal
 
-### Total Variation Regularization
-- **TV proximal operator**: Smooths increments while preserving structural trends
-- **Overlap-add reconstruction**: Combines processed windows with smooth transitions
-- **Progressive smoothing**: Increasing λ_var provides stronger noise suppression
+### What It Is NOT (Yet)
 
-## Performance Validation
+**Advanced Mathematical Finance**: While inspired by rough path theory, the current implementation is primarily **applied signal processing** rather than rigorous mathematical finance.
 
-### Real Market Data
-- **Google (GOOG)**: 97.12% realized variance reduction (39.12 → 1.12)
-- **Baseline preservation**: Reliable (205.08000183 → 205.08000183)
-- **Length stability**: No array mismatches or data loss
+**Theoretical Guarantees**: We lack formal mathematical proofs of convergence, stability, or optimality properties.
 
-### Mathematical Precision
-- **Identity tests**: All pass with synthetic and real data
-- **Length validation**: Preservation across all operations
-- **Baseline consistency**: Maintained through standardization and reconstruction
+**Rough Path Signatures**: The current implementation does not compute or utilize rough path signatures.
 
-## Theoretical Context
+**Stochastic Calculus**: We have not implemented Ito calculus, Malliavin calculus, or other advanced stochastic methods.
 
-For deeper mathematical context, see:
-- **Lyons (1998); Lyons–Caruana–Lévy (2007); Friz–Victoir (2010)** on rough paths
-- **Gatheral–Jaisson–Rosenbaum (2018)** on rough volatility
-- **Barndorff-Nielsen–Shephard** (microstructure/realized variance)
-- **Cont; Bouchaud–Farmer–Lillo** for stylized facts
+## Mathematical Inspiration
 
-## Implementation Status
+### Rough Path Theory
 
-### What's Working
-- ✅ **Identity contract** with mathematical precision
-- ✅ **Robust implementation** with reliable operation
-- ✅ **Excellent noise reduction** (97.12% variance reduction)
-- ✅ **Real data validation** on live market data
-- ✅ **Production ready** with comprehensive testing
+**Background**: Rough path theory, developed by Terry Lyons and collaborators, provides a framework for analyzing irregular paths and their integrals.
 
-### What's Next
-- **Advanced math**: Implement rigorous rough path theory
-- **Stochastic calculus**: Add theoretical guarantees
-- **Adaptive methods**: Dynamic parameter adjustment
-- **Real-time processing**: Streaming implementation
+**Relevance**: Financial time series often exhibit irregular, non-smooth behavior that traditional calculus cannot handle well.
 
-## Key Insights
+**Current Status**: **Inspiration only** - we use the conceptual framework of handling irregular paths, but not the rigorous mathematical machinery.
 
-1. **Mathematical precision is foundational**: The identity contract enables reliable advanced methods
-2. **Explicit indexing prevents bugs**: Length mismatches are eliminated through careful implementation
-3. **Real data validation is crucial**: Theoretical methods must work on actual market data
-4. **Progressive smoothing works**: Different λ_var values provide useful trade-offs
-5. **Baseline preservation is essential**: Price series must maintain their fundamental structure
+### Microstructure Noise
 
-This implementation provides a **solid, mathematically sound foundation** for building more advanced rough path methods while delivering excellent practical results on real financial data.
+**Definition**: High-frequency noise in financial data caused by bid-ask spreads, market microstructure, and measurement errors.
+
+**Impact**: Obscures true price movements and complicates analysis.
+
+**Our Approach**: Apply wavelet-based denoising with fidelity preservation rather than aggressive noise removal.
+
+## Technical Approach
+
+### Wavelet Analysis
+
+**Why Wavelets**: Wavelets provide multi-scale analysis that can separate noise from signal at different frequency levels.
+
+**Implementation**: Using PyWavelets library with Daubechies wavelets (db4) and 4 decomposition levels.
+
+**Limitations**: Wavelet choice and level selection are empirical rather than theoretically optimal.
+
+### Guardrail System
+
+**Purpose**: Prevent the denoiser from destroying meaningful signals while removing noise.
+
+**Metrics**:
+- **Correlation**: Maintains relationship with original series
+- **RMSE**: Controls tracking accuracy
+- **Trend Preservation**: Maintains directional movements
+- **Low-frequency Power**: Preserves structural components
+
+**Current Status**: Working implementation with empirically determined thresholds.
+
+## Limitations and Challenges
+
+### Mathematical Rigor
+
+**Lack of Theory**: No formal mathematical foundation for convergence or optimality.
+
+**Parameter Selection**: Thresholds and parameters are empirically determined.
+
+**Validation**: Limited theoretical validation of the approach.
+
+### Performance Guarantees
+
+**No Bounds**: We cannot guarantee performance on unseen data.
+
+**Data Dependence**: Results may vary across different market conditions.
+
+**Adaptation**: Limited ability to adapt to changing market regimes.
+
+### Scalability
+
+**Computational Complexity**: Wavelet decomposition scales with data length.
+
+**Memory Usage**: Can be significant for very long time series.
+
+**Real-time Processing**: Not optimized for streaming data.
+
+## Future Directions
+
+### Short-term Improvements
+
+1. **Better Validation**: More comprehensive testing across diverse datasets
+2. **Parameter Optimization**: Improved automatic tuning methods
+3. **Performance Monitoring**: Better tracking of guardrail effectiveness
+4. **Documentation**: Clearer explanation of limitations and capabilities
+
+### Medium-term Goals
+
+1. **Theoretical Foundation**: Develop mathematical proofs and guarantees
+2. **Advanced Methods**: Implement rough path signatures and related techniques
+3. **Cross-asset Validation**: Test across different financial instruments
+4. **Market Regime Adaptation**: Better handling of changing market conditions
+
+### Long-term Vision
+
+1. **Rigorous Mathematics**: Full implementation of rough path theory
+2. **Stochastic Methods**: Integration with advanced stochastic calculus
+3. **Theoretical Guarantees**: Formal proofs of convergence and stability
+4. **Academic Contribution**: Publishable research contributions
+
+## Current Status Summary
+
+**What We Have**: A working, robust financial time series denoiser that prioritizes signal fidelity over aggressive noise removal.
+
+**What We're Working On**: Improving validation, documentation, and user experience.
+
+**What We Need**: Mathematical rigor, theoretical foundations, and academic validation.
+
+**What We're Not**: A complete solution for advanced mathematical finance (yet).
+
+## Honest Assessment
+
+**Strengths**:
+- Working implementation on real data
+- Fidelity-first approach with guardrails
+- Transparent about capabilities and limitations
+- Open source and community-driven
+
+**Weaknesses**:
+- Limited theoretical foundation
+- Empirical parameter selection
+- No performance guarantees
+- Limited academic validation
+
+**Current Value**: Provides a **practical tool** for financial signal processing with **honest limitations** and **clear capabilities**.
+
+## Conclusion
+
+The current implementation represents a **solid foundation** for practical financial time series denoising. While not yet advanced mathematical finance, it provides:
+
+1. **Working Tools**: Reliable denoising with verifiable quality
+2. **Clear Direction**: Path toward more advanced mathematics
+3. **Transparent Claims**: Honest about what works and what doesn't
+4. **Community Foundation**: Open source project welcoming contributions
+
+**Next Steps**: Focus on validation, documentation, and incremental improvements while building toward the long-term vision of truly advanced mathematical finance.
+
+**Remember**: Building advanced math models is a journey, not a destination. We're on that journey, building step by step with transparency and honesty about our progress.
