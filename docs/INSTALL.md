@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide covers installing and setting up the Robust Financial Time Series Denoiser. The system is designed to work with Python 3.11+ and provides both command-line and programmatic interfaces.
+This guide covers installing and setting up the Robust Financial Time Series Denoiser. The system is designed to work with Python 3.11+ and provides a programmatic interface.
 
 ## Prerequisites
 
@@ -151,9 +151,6 @@ Verify the installation works:
 ```bash
 # Test import
 python -c "import rpsd; print('Import successful')"
-
-# Test CLI
-rpsd --help
 
 # Run basic test
 python -m pytest tests/test_basic.py -v

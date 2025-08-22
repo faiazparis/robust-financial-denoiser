@@ -413,7 +413,7 @@ curl http://localhost:8000/health/detailed
    - Deploy to production gradually
 
 2. **A/B Testing**:
-   - Compare old and new versions
+   - Monitor performance metrics
    - Monitor performance metrics
    - Roll back if issues detected
 

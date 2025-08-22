@@ -13,8 +13,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from rpsd.denoise_robust import DenoiseConfig, wavelet_denoise, evaluate_guardrails
 
-def create_robust_comparison_plot():
-    """Create a comprehensive comparison plot using the robust denoiser."""
+def create_robust_plot():
+    """Create a comprehensive plot using the robust denoiser."""
     
     print("=== Google Stock Denoising with Robust Denoiser ===\n")
     
@@ -112,7 +112,7 @@ def create_robust_comparison_plot():
     print(f"\n🎯 Overall Compliance Score: {compliance_score:.1f}/100")
     
     # Create visualization
-    print(f"\n🎨 Creating comparison plot...")
+    print(f"\n🎨 Creating robust denoising plot...")
     
     # Sample data for plotting (avoid overcrowding)
     max_points = 500
@@ -128,20 +128,22 @@ def create_robust_comparison_plot():
         plot_timestamps = timestamps
     
     # Create figure with subplots
-    fig, axes = plt.subplots(2, 1, figsize=(14, 10))
+    fig, axes = plt.subplots(2, 1, figsize=(16, 12))
     fig.suptitle('Google Stock Denoising: Robust Wavelet Approach', 
-                 fontsize=16, fontweight='bold', y=0.95)
+                 fontsize=20, fontweight='bold', y=0.92, color='#2c3e50')
     
-    # Top panel: Price comparison
+    # Top panel: Price series
     ax1 = axes[0]
     ax1.plot(plot_timestamps, plot_prices, label='Original', 
-             color='#2E86AB', linewidth=1.5, alpha=0.8)
+             color='#3498db', linewidth=2, alpha=0.9)
     ax1.plot(plot_timestamps, plot_denoised, label='Denoised', 
-             color='#A23B72', linewidth=1.5, alpha=0.8)
-    ax1.set_title('Price Series Comparison', fontsize=14, fontweight='bold')
-    ax1.set_ylabel('Price ($)', fontsize=12)
-    ax1.legend()
-    ax1.grid(True, alpha=0.3)
+             color='#e74c3c', linewidth=2, alpha=0.9)
+    ax1.set_title('Price Series', fontsize=16, fontweight='bold', 
+                  color='#2c3e50', pad=25)
+    ax1.set_ylabel('Price ($)', fontsize=14, fontweight='bold', color='#2c3e50')
+    ax1.legend(fontsize=12, framealpha=0.9, loc='upper left')
+    ax1.grid(True, alpha=0.2, linestyle='--')
+    ax1.tick_params(axis='both', which='major', labelsize=11)
     
     # Bottom panel: Price changes (increments)
     ax2 = axes[1]
@@ -149,26 +151,30 @@ def create_robust_comparison_plot():
     denoised_changes = np.diff(plot_denoised)
     
     ax2.plot(plot_timestamps[1:], original_changes, label='Original Changes', 
-             color='#2E86AB', linewidth=1, alpha=0.7)
+             color='#3498db', linewidth=1.5, alpha=0.8)
     ax2.plot(plot_timestamps[1:], denoised_changes, label='Denoised Changes', 
-             color='#A23B72', linewidth=1, alpha=0.7)
-    ax2.set_title('Price Changes (Increments)', fontsize=14, fontweight='bold')
-    ax2.set_xlabel('Time', fontsize=12)
-    ax2.set_ylabel('Price Change ($)', fontsize=12)
-    ax2.legend()
-    ax2.grid(True, alpha=0.3)
+             color='#e74c3c', linewidth=1.5, alpha=0.8)
+    ax2.set_title('Price Changes (Increments)', fontsize=16, fontweight='bold', 
+                  color='#2c3e50', pad=25)
+    ax2.set_xlabel('Time', fontsize=14, fontweight='bold', color='#2c3e50')
+    ax2.set_ylabel('Price Change ($)', fontsize=14, fontweight='bold', color='#2c3e50')
+    ax2.legend(fontsize=12, framealpha=0.9, loc='upper left')
+    ax2.grid(True, alpha=0.2, linestyle='--')
+    ax2.tick_params(axis='both', which='major', labelsize=11)
     
-    # Add performance summary text
+    # Add performance summary text with better styling
     summary_text = f"""Performance Summary:
 • Signal Correlation: {correlation:.3f}
 • RMSE: {rmse:.3f}
 • Compliance Score: {compliance_score:.1f}/100
 • Trend Preservation: {report.trend_agreement:.1f}%"""
     
-    # Position text box in top right
+    # Position text box in top right with better styling
     ax1.text(0.98, 0.98, summary_text, transform=ax1.transAxes, 
-             fontsize=10, verticalalignment='top', horizontalalignment='right',
-             bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+             fontsize=11, verticalalignment='top', horizontalalignment='right',
+             bbox=dict(boxstyle='round,pad=0.5', facecolor='#ecf0f1', 
+                      edgecolor='#bdc3c7', alpha=0.95),
+             color='#2c3e50')
     
     plt.tight_layout()
     
@@ -182,4 +188,4 @@ def create_robust_comparison_plot():
     print(f"📊 Shows: Original vs. denoised prices with performance metrics")
 
 if __name__ == "__main__":
-    create_robust_comparison_plot()
+    create_robust_plot()

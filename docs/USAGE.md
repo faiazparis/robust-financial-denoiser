@@ -35,18 +35,8 @@ python examples/plot_real_data_robust.py
 ```
 
 This generates:
-- `examples/plots/goog_before_after_robust.png` - Main comparison plot
+- `examples/plots/goog_before_after_robust.png` - Google stock denoising plot
 - Performance metrics in the terminal
-
-### 4. Compare Denoiser Performance
-
-```bash
-python examples/compare_denoisers.py
-```
-
-This generates:
-- `examples/plots/denoiser_comparison_comprehensive.png` - Performance comparison
-- Detailed metrics for both old and new denoisers
 
 ## Core Components
 
@@ -73,43 +63,6 @@ denoised = wavelet_denoise(prices, config)
 # Evaluate results
 report = evaluate_guardrails(prices, denoised, config)
 print(f"Compliance Score: {report.compliance_score:.1f}/100")
-```
-
-### Legacy Denoiser (`denoise.py`)
-
-The original implementation for comparison:
-
-```python
-from rpsd.denoise import denoise_series
-
-# Basic usage
-denoised = denoise_series(
-    values=prices,
-    window=250,
-    overlap=0.5,
-    lam_var=1.2,
-    max_iters=200
-)
-```
-
-### Command Line Interface
-
-```bash
-# Basic denoising
-rpsd denoise --input data.csv --output denoised.csv
-
-# With custom parameters
-rpsd denoise \
-  --input data.csv \
-  --output denoised.csv \
-  --window 250 \
-  --overlap 0.5 \
-  --lambda-var 1.2 \
-  --max-iters 200 \
-  --verbose
-
-# Evaluate results
-rpsd evaluate --original data.csv --denoised denoised.csv
 ```
 
 ## Configuration
@@ -295,3 +248,19 @@ For issues and questions:
 - Review example scripts in `examples/`
 - Open an issue on GitHub
 - Check `docs/BACKGROUND.md` for theoretical context
+
+## Project Structure
+
+```
+Rough Path Signal Denoiser/
+├── src/rpsd/                    # Core implementation
+│   ├── denoise_robust.py       # Robust wavelet denoiser
+│   └── data.py                  # Data utilities
+├── examples/                    # Usage examples
+│   ├── download_data.py        # Data download utility
+│   ├── plot_real_data_robust.py # Main plotting script
+│   └── plots/                  # Generated visualizations
+├── docs/                       # Documentation
+├── tests/                      # Test suite
+└── requirements.txt            # Dependencies
+```

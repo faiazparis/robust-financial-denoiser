@@ -33,8 +33,6 @@ dependencies = [
     "numpy>=1.26,<2.0",
     "pandas>=2.2,<3.0",
     "scipy>=1.13,<2.0",
-    "typer>=0.12,<1.0",
-    "rich>=13.7,<14.0",
     "joblib>=1.4,<5.0",
     "tqdm>=4.66,<5.0",
     "matplotlib>=3.9,<4.0",
@@ -60,9 +58,6 @@ Repository = "https://github.com/faiazparis/robust-financial-denoiser.git"
 Documentation = "https://github.com/faiazparis/robust-financial-denoiser#readme"
 Issues = "https://github.com/faiazparis/robust-financial-denoiser/issues"
 Changelog = "https://github.com/faiazparis/robust-financial-denoiser/blob/main/CHANGELOG.md"
-
-[project.scripts]
-rpsd = "rpsd.cli:app"
 
 [tool.setuptools.packages.find]
 where = ["src"]
