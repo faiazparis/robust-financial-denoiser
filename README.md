@@ -20,8 +20,8 @@ A **robust financial time series denoiser** with fidelity-first performance metr
 
 ### **Visual Results**
 
-**Google Stock Denoising (Robust Denoiser):**
-![Google Stock Denoising](examples/plots/goog_before_after_robust.png)
+**Robust Denoiser Results:**
+![Robust Denoiser Results](examples/plots/goog_before_after_robust.png)
 
 **Variance Reduction Summary:**
 ![Variance Reduction](examples/plots/variance_reduction_summary.png)

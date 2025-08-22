@@ -129,8 +129,7 @@ def create_robust_plot():
     
     # Create figure with subplots
     fig, axes = plt.subplots(2, 1, figsize=(16, 12))
-    fig.suptitle('Google Stock Denoising: Robust Wavelet Approach', 
-                 fontsize=20, fontweight='bold', y=0.92, color='#2c3e50')
+    # Remove the long main title that was causing overlap
     
     # Top panel: Price series
     ax1 = axes[0]
@@ -139,7 +138,7 @@ def create_robust_plot():
     ax1.plot(plot_timestamps, plot_denoised, label='Denoised', 
              color='#e74c3c', linewidth=2, alpha=0.9)
     ax1.set_title('Price Series', fontsize=16, fontweight='bold', 
-                  color='#2c3e50', pad=25)
+                  color='#2c3e50', pad=35)
     ax1.set_ylabel('Price ($)', fontsize=14, fontweight='bold', color='#2c3e50')
     ax1.legend(fontsize=12, framealpha=0.9, loc='upper left')
     ax1.grid(True, alpha=0.2, linestyle='--')
@@ -154,8 +153,8 @@ def create_robust_plot():
              color='#3498db', linewidth=1.5, alpha=0.8)
     ax2.plot(plot_timestamps[1:], denoised_changes, label='Denoised Changes', 
              color='#e74c3c', linewidth=1.5, alpha=0.8)
-    ax2.set_title('Price Changes (Increments)', fontsize=16, fontweight='bold', 
-                  color='#2c3e50', pad=25)
+    ax2.set_title('Price Changes (Increments)', fontsize=16,
+                  color='#2c3e50', pad=35)
     ax2.set_xlabel('Time', fontsize=14, fontweight='bold', color='#2c3e50')
     ax2.set_ylabel('Price Change ($)', fontsize=14, fontweight='bold', color='#2c3e50')
     ax2.legend(fontsize=12, framealpha=0.9, loc='upper left')
