@@ -40,6 +40,31 @@ RPSD is a robust financial time series denoiser built on rough path signal proce
 - **Bottom panels**: Price increments comparison (demonstrating noise reduction)
 - **Clear visualization** of microstructure noise suppression while preserving structural moves
 
+**Google (GOOG) Real Market Data Analysis**:
+
+![Google Price Series Denoising](examples/plots/goog_before_after.png)
+
+**Data Details**:
+- **Input**: Real Google (GOOG) stock data via yfinance API
+- **Time Period**: 5-day trading window (1,741 minute-level observations)
+- **Price Range**: $197.68 - $205.94 (actual market prices)
+- **Source**: NYSE/NASDAQ live market data with real microstructure noise
+
+**Processing**:
+- **Algorithm**: Rough path-inspired denoising with total variation regularization
+- **Parameters**: Window=150, overlap=0.5, λ_var=0.5, λ_sig=0.1, max_iters=80
+- **Output**: Denoised price series preserving structural movements
+
+**What You See**:
+- **Top Panel**: Original (blue) vs. denoised (orange) price series - noise removed while trends preserved
+- **Bottom Panel**: Price increments showing dramatic reduction in high-frequency oscillations
+- **Result**: 70.08% realized variance reduction (39.12 → 11.70) on live market data
+
+**Performance Summary**:
+![Variance Reduction Summary](examples/plots/variance_reduction_summary.png)
+
+*Quantitative validation: 70.08% variance reduction achieved on real Google market data, demonstrating effective microstructure noise suppression.*
+
 **Quantitative Results**:
 - **GOOG**: 70.08% realized variance reduction (39.12 → 11.70) - **Excellent performance**
 - **Synthetic data**: ~22% reduction (2.06 → 1.61) - **Baseline validation**
