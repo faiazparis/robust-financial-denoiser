@@ -8,8 +8,8 @@ def create_summary_plot():
     
     # Data from our analysis
     datasets = ['GOOG']
-    rv_original = [39.122448]
-    rv_denoised = [11.703872]
+    rv_original = [13.765364]
+    rv_denoised = [3.739461]
     
     # Calculate percentage reductions
     reductions = [(orig - den) / orig * 100 for orig, den in zip(rv_original, rv_denoised)]

@@ -5,6 +5,7 @@ from pathlib import Path
 import pandas as pd
 import typer
 from rich.console import Console
+import numpy as np
 
 from .config import DenoiseConfig
 from .data import preprocess_prices, read_ticks
@@ -22,9 +23,7 @@ def denoise(
     price_col: str = typer.Option("price"),
     window: int = typer.Option(150),
     overlap: float = typer.Option(0.5),
-    sig_depth: int = typer.Option(2),
     lambda_var: float = typer.Option(0.5),
-    lambda_sig: float = typer.Option(0.1),
     max_iters: int = typer.Option(80),
     n_jobs: int = typer.Option(1, help="-1 to use all cores"),
     progress: bool = typer.Option(False),
@@ -34,23 +33,54 @@ def denoise(
 ) -> None:
     cfg = DenoiseConfig(
         time_col=time_col, price_col=price_col, window=window, overlap=overlap,
-        sig_depth=sig_depth, lambda_var=lambda_var, lambda_sig=lambda_sig,
-        max_iters=max_iters, n_jobs=n_jobs, verbose=verbose,
+        lambda_var=lambda_var, max_iters=max_iters, n_jobs=n_jobs, verbose=verbose,
         clip_z=clip_z, standardize=standardize
     )
     if verbose:
         console.log(f"Loading CSV: {input}")
     df = read_ticks(input, time_col, price_col)
+    
+    # Single standardization point: preprocess once
     df_p, mean, std = preprocess_prices(df, price_col, clip_z, standardize)
     values = df_p[price_col].to_numpy(dtype=float)
+    
+    if verbose:
+        console.log(f"Preprocessing: standardize={standardize}, mean={mean:.6f}, std={std:.6f}")
+        console.log(f"First few input values: {values[:3]}")
 
+    # Denoise in the same domain as input (standardized or raw)
     res = denoise_series(
-        values, window=cfg.window, overlap=cfg.overlap,
-        lam_var=cfg.lambda_var, lam_sig=cfg.lambda_sig, sig_depth=cfg.sig_depth,
-        max_iters=cfg.max_iters, n_jobs=cfg.n_jobs, progress=progress
+        values=values,
+        window=cfg.window,
+        overlap=cfg.overlap,
+        lam_var=cfg.lambda_var,
+        max_iters=cfg.max_iters,
+        n_jobs=cfg.n_jobs,
+        progress=progress
     )
 
-    out_values = res.denoised * (std if standardize else 1.0) + (mean if standardize else 0.0)
+    # Inverse transform exactly once on FINAL PRICES (not on increments)
+    if standardize:
+        out_values = res.denoised * std + mean
+        if verbose:
+            console.log(f"First few denoised standardized: {res.denoised[:3]}")
+            console.log(f"First few after inverse transform: {out_values[:3]}")
+    else:
+        out_values = res.denoised
+        if verbose:
+            console.log(f"First few denoised raw: {out_values[:3]}")
+    
+    # Sanity checks for identity contract
+    if verbose:
+        if standardize:
+            # Check that inverse scaling preserves the relationship
+            assert np.isclose(out_values[0], df[price_col].iloc[0], rtol=1e-10), \
+                f"Inverse scaling baseline mismatch: {out_values[0]} != {df[price_col].iloc[0]}"
+        else:
+            # Check that raw processing preserves baseline
+            assert np.isclose(out_values[0], df[price_col].iloc[0], rtol=1e-10), \
+                f"Raw processing baseline mismatch: {out_values[0]} != {df[price_col].iloc[0]}"
+    
     out = pd.DataFrame({time_col: df[time_col].astype(str), price_col: out_values})
     Path(output).parent.mkdir(parents=True, exist_ok=True)
     out.to_csv(output, index=False)

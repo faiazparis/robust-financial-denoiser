@@ -76,7 +76,7 @@ if __name__ == "__main__":
     print("Creating Google (GOOG) comparison plot...")
     create_comparison_plot(
         "examples/goog_1m.csv",
-        "out/goog_denoised.csv", 
+        "examples/goog_denoised.csv", 
         "Google (GOOG) - 1 Minute Data",
         "examples/plots/goog_before_after.png"
     )
