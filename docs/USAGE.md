@@ -117,7 +117,7 @@ timestamp,price
 
 ### Primary Metrics
 
-1. **Variance Reduction**: Noise removal effectiveness
+1. **Signal Correlation**: Signal preservation quality
 2. **Signal Correlation**: Preservation of original structure
 3. **RMSE**: Tracking accuracy
 4. **Compliance Score**: Overall quality assessment (0-100)

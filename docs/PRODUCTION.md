@@ -283,7 +283,7 @@ curl http://localhost:8000/health/detailed
 **Key Metrics**:
 1. **Performance**: Request rate, processing time, error rate
 2. **Resources**: CPU, memory, disk usage
-3. **Quality**: Guardrail compliance rates, variance reduction
+3. **Quality**: Guardrail compliance rates, signal correlation
 4. **Business**: Data processed, users served, uptime
 
 **Monitoring Tools**:
