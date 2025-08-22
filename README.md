@@ -39,11 +39,11 @@ A **robust financial time series denoiser** with fidelity-first performance metr
 
 ### **Compliance Score Formula**
 The compliance score (0-100) is calculated as:
-- **Signal Correlation** (40%): `min(corr/0.85, 1.0) × 40` → 98.99%/85% × 40 = 46.6
+- **Signal Correlation** (40%): `min(corr/0.85, 1.0) × 40` → 98.99%/85% × 40 = 40.0
 - **Tracking Accuracy** (25%): `min(max(0, 1-RMSE/0.5), 1.0) × 25` → (1-0.338/0.5) × 25 = 8.1
 - **Trend Preservation** (20%): `min(trend_agreement/0.90, 1.0) × 20` → 71%/90% × 20 = 15.8
 - **Structure Preservation** (15%): `min(low_freq_power/0.95, 1.0) × 15` → 93.11%/95% × 15 = 14.7
-- **Total**: 46.6 + 8.1 + 15.8 + 14.7 = **85.2/100** (actual: 78.6/100)
+- **Total**: 40.0 + 8.1 + 15.8 + 14.7 = **78.6/100** ✅
 
 ### **Why These Results Are Reasonable**
 
