@@ -41,8 +41,19 @@ def create_comparison_plot(original_file: str, denoised_file: str, title: str, o
     ax2.legend()
     ax2.grid(True, alpha=0.3)
     
-    # Rotate x-axis labels for better readability
-    plt.setp(ax2.get_xticklabels(), rotation=45, ha='right')
+    # Format x-axis timestamps for better readability
+    # Show fewer timestamps to avoid overcrowding
+    ax2.xaxis.set_major_locator(plt.MaxNLocator(8))  # Show max 8 timestamps
+    plt.setp(ax2.get_xticklabels(), rotation=45, ha='right', fontsize=9)
+    
+    # Format timestamp labels to be more readable
+    def format_timestamp(x, pos):
+        try:
+            return pd.to_datetime(x).strftime('%H:%M')
+        except:
+            return str(x)
+    
+    ax2.xaxis.set_major_formatter(plt.FuncFormatter(format_timestamp))
     
     plt.tight_layout()
     plt.savefig(output_file, dpi=150, bbox_inches='tight')
